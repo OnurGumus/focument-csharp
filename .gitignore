@@ -10,6 +10,7 @@ packages/
 
 # Kubernetes deployment with private infrastructure details
 kubernetes-deployment.yaml
+deploy.sh
 
 # Claude Code local settings
 .claude/settings.local.json
