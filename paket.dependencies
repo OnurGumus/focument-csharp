@@ -1,0 +1,11 @@
+source https://api.nuget.org/v3/index.json
+
+storage: none
+framework: net10.0
+nuget FSharp.Core content: none
+nuget FCQRS.Model
+nuget FCQRS
+nuget FsToolkit.ErrorHandling
+nuget Dapper
+nuget Microsoft.Data.Sqlite
+nuget linq2db 5.4.1
