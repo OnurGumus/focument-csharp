@@ -76,7 +76,7 @@ When you click "History", it reads all events for that document and shows them a
 
 - **.NET 10** - The runtime
 - **Akka.NET + Akkling** - Actor model for aggregate roots
-- **FCQRS** - A small library that wires up the CQRS/ES plumbing
+- **[FCQRS](https://github.com/OnurGumus/FCQRS)** - A small library that wires up the CQRS/ES plumbing
 - **SQLite** - Event store and read model
 - **Vanilla JS** - No framework needed for a simple UI
 

@@ -25,8 +25,17 @@ public static class Handlers
     // -----------------------------------------------------------------------------
     // QUERY HANDLERS (Read Side)
     // -----------------------------------------------------------------------------
-    public static Query.Document[] GetDocuments(string connectionString) =>
-        ServerQuery.GetDocuments(connectionString).ToArray();
+    public static Query.Document[] GetDocuments(string connectionString)
+    {
+        var docs = ServerQuery.GetDocuments(connectionString);
+        var cutoff = DateTime.UtcNow.AddMinutes(-10);
+
+        // Filter: only show documents from last 10 minutes, unless it's the example doc
+        var filtered = System.Linq.Enumerable.Where(docs,
+            d => (DateTime.TryParse(d.UpdatedAt, out var updated) && updated > cutoff)
+                 || (d.Title == "Hello" && d.Body == "World"));
+        return System.Linq.Enumerable.ToArray(filtered);
+    }
 
     public static Query.DocumentVersion[] GetDocumentHistory(string connectionString, HttpContext ctx)
     {
