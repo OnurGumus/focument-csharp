@@ -219,19 +219,28 @@ table {
     margin-top: 1rem;
 }
 
-footer {
-    margin-top: 3rem;
-    text-align: center;
-    padding: 1rem;
-    color: #666;
+header {
+    margin-bottom: 1.5rem;
+}
 
-    a {
-        color: #888;
-        text-decoration: none;
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: #333;
+    transition: all 0.2s ease;
 
-        &:hover {
-            color: #3b82f6;
-            text-decoration: underline;
-        }
+    svg {
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        border-color: #3b82f6;
+        background: #3b82f6;
     }
 }

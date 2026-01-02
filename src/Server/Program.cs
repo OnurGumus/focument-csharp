@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -128,18 +129,6 @@ if (!string.IsNullOrEmpty(pathBase))
 {
     app.UsePathBase(pathBase);
 
-    // Redirect /pathbase to /pathbase/ so relative URLs resolve correctly
-    // This is needed because browser preload scanners don't execute JS
-    app.Use(async (context, next) =>
-    {
-        if (context.Request.Path.Value == "" || context.Request.Path.Value == null)
-        {
-            var redirectUrl = pathBase + "/" + context.Request.QueryString;
-            context.Response.Redirect(redirectUrl, permanent: false);
-            return;
-        }
-        await next();
-    });
 }
 
 // =============================================================================
@@ -170,9 +159,26 @@ app.UseRateLimiter();
 app.UseRouting();
 app.UseAntiforgery();
 
-// Static files
-app.UseDefaultFiles();
+// Static files (CSS, JS, etc.)
 app.UseStaticFiles();
+
+// Serve index.html with server-side base tag injection
+var indexHtmlPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+var indexHtmlTemplate = File.ReadAllText(indexHtmlPath);
+
+app.MapGet("/", (HttpContext ctx) =>
+{
+    var basePath = (ctx.Request.PathBase.Value ?? "") + "/";
+    var html = indexHtmlTemplate.Replace("{{BASE}}", basePath);
+    return Microsoft.AspNetCore.Http.Results.Content(html, "text/html");
+});
+
+app.MapGet("/index.html", (HttpContext ctx) =>
+{
+    var basePath = (ctx.Request.PathBase.Value ?? "") + "/";
+    var html = indexHtmlTemplate.Replace("{{BASE}}", basePath);
+    return Microsoft.AspNetCore.Http.Results.Content(html, "text/html");
+});
 
 app.MapGet("/api/documents", () => Handlers.GetDocuments(connectionString));
 
