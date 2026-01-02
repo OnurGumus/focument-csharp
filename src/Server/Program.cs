@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,14 @@ var builder = WebApplication.CreateBuilder(args);
 // =============================================================================
 // SECURITY SERVICES CONFIGURATION
 // =============================================================================
+
+// Configure forwarded headers for running behind nginx ingress
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Antiforgery for CSRF protection
 builder.Services.AddAntiforgery();
@@ -105,6 +114,11 @@ var subs = QueryApi.InitWithList(
 var commandHandler = CommandHandlerFactory.Create(actorApi);
 
 var app = builder.Build();
+
+// =============================================================================
+// FORWARDED HEADERS (must be first for correct client IP behind nginx)
+// =============================================================================
+app.UseForwardedHeaders();
 
 // =============================================================================
 // PATH BASE CONFIGURATION (for subpath deployment like /focument-fsharp)

@@ -4,14 +4,14 @@ let antiforgeryHeaderName = null;
 
 // Fetch antiforgery token on page load
 async function fetchAntiforgeryToken() {
-    const response = await fetch('/api/antiforgery-token');
+    const response = await fetch('api/antiforgery-token');
     const data = await response.json();
     antiforgeryToken = data.token;
     antiforgeryHeaderName = data.headerName;
 }
 
 async function loadDocuments() {
-    const response = await fetch('/api/documents');
+    const response = await fetch('api/documents');
     const documents = await response.json();
     const tbody = document.querySelector('#documentsTable tbody');
     tbody.innerHTML = '';
@@ -58,7 +58,7 @@ function cancelEdit() {
 
 async function showHistory(id) {
     currentHistoryDocId = id;
-    const response = await fetch(`/api/document/${id}/history`);
+    const response = await fetch(`api/document/${id}/history`);
     const versions = await response.json();
     const tbody = document.querySelector('#historyTable tbody');
     tbody.innerHTML = '';
@@ -89,7 +89,7 @@ async function restoreVersion(id, version) {
     formData.append('Id', id);
     formData.append('Version', version);
 
-    await fetch('/api/document/restore', {
+    await fetch('api/document/restore', {
         method: 'POST',
         headers: { [antiforgeryHeaderName]: antiforgeryToken },
         body: formData
@@ -107,7 +107,7 @@ document.getElementById('docForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    await fetch('/api/document', {
+    await fetch('api/document', {
         method: 'POST',
         headers: { [antiforgeryHeaderName]: antiforgeryToken },
         body: formData

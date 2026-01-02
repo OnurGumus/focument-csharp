@@ -4,6 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Dynamically set base href for subpath deployment
+        (function() {
+            var path = window.location.pathname;
+            if (!path.endsWith('/')) path += '/';
+            var base = document.createElement('base');
+            base.href = path;
+            document.head.appendChild(base);
+        })();
+    </script>
     <title>Focument</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -56,6 +66,10 @@
             </table>
         </div>
     </div>
+
+    <footer>
+        <a href="https://github.com/OnurGumus/focument-csharp" target="_blank">View source on GitHub</a>
+    </footer>
 
     <script src="script.js"></script>
 </body>

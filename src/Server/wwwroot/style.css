@@ -218,3 +218,20 @@ table {
 #historyTable {
     margin-top: 1rem;
 }
+
+footer {
+    margin-top: 3rem;
+    text-align: center;
+    padding: 1rem;
+    color: #666;
+
+    a {
+        color: #888;
+        text-decoration: none;
+
+        &:hover {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+    }
+}
