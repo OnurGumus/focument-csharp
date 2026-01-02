@@ -4,7 +4,7 @@ A document management demo built with event sourcing and CQRS in C#.
 
 ![Screenshot](image.png)
 
-**[Live Demo](https://novian.works/focument-fsharp)**
+**[Live Demo](https://novian.works/focument-csharp)**
 
 ## What is this?
 
