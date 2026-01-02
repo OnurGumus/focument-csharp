@@ -25,6 +25,12 @@ public static class Projection
         using var conn = new SqliteConnection(connString);
         conn.Open();
 
+        // SQLite performance optimizations for concurrent read/write
+        conn.Execute("PRAGMA journal_mode=WAL");
+        conn.Execute("PRAGMA synchronous=NORMAL");
+        conn.Execute("PRAGMA busy_timeout=5000");
+        conn.Execute("PRAGMA cache_size=10000");
+
         conn.Execute("""
             CREATE TABLE IF NOT EXISTS Documents (
                 Id TEXT PRIMARY KEY,

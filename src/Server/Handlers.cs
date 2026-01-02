@@ -6,6 +6,7 @@
 // =============================================================================
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,9 @@ public static class Handlers
         ICommandHandlers commandHandler,
         HttpContext ctx)
     {
+        var totalSw = Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
+
         _logger?.LogDebug("CreateOrUpdateDocument called");
         try
         {
@@ -59,6 +63,8 @@ public static class Handlers
             var title = form["Title"].ToString();
             var content = form["Content"].ToString();
             var existingId = form["Id"].ToString();
+            var parseTime = sw.ElapsedMilliseconds;
+            sw.Restart();
 
             // Input length validation
             const int maxLength = 2000;
@@ -83,6 +89,8 @@ public static class Handlers
                 return $"Error: {docError}";
             }
             _logger?.LogDebug("Document validated");
+            var validateTime = sw.ElapsedMilliseconds;
+            sw.Restart();
 
             var correlationId = getCid();
             _logger?.LogDebug("CorrelationId: {CorrelationId}", correlationId);
@@ -98,10 +106,18 @@ public static class Handlers
                 aggregateId,
                 new DocumentCommand.CreateOrUpdate(document));
             _logger?.LogDebug("Command sent, waiting for projection");
+            var commandTime = sw.ElapsedMilliseconds;
+            sw.Restart();
 
             // Wait for the event to be projected
             await awaiter.Task;
             _logger?.LogDebug("Event projected");
+            var projectionTime = sw.ElapsedMilliseconds;
+            var totalTime = totalSw.ElapsedMilliseconds;
+
+            // Add Server-Timing header for performance analysis
+            ctx.Response.Headers["Server-Timing"] =
+                $"parse;dur={parseTime}, validate;dur={validateTime}, command;dur={commandTime}, projection;dur={projectionTime}, total;dur={totalTime}";
 
             return "Document received!";
         }
