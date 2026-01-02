@@ -127,6 +127,19 @@ var pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_PATHBASE");
 if (!string.IsNullOrEmpty(pathBase))
 {
     app.UsePathBase(pathBase);
+
+    // Redirect /pathbase to /pathbase/ so relative URLs resolve correctly
+    // This is needed because browser preload scanners don't execute JS
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path.Value == "" || context.Request.Path.Value == null)
+        {
+            var redirectUrl = pathBase + "/" + context.Request.QueryString;
+            context.Response.Redirect(redirectUrl, permanent: false);
+            return;
+        }
+        await next();
+    });
 }
 
 // =============================================================================
