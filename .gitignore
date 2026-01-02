@@ -7,3 +7,6 @@ obj/
 paket-files/
 .paket/
 packages/
+
+# Kubernetes deployment with private infrastructure details
+kubernetes-deployment.yaml

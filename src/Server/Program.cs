@@ -17,7 +17,8 @@ using IMessageWithCID = FCQRS.Model.Data.IMessageWithCID;
 
 var logf = LoggerFactory.Create(x => x.AddConsole());
 
-const string connectionString = "Data Source=focument_csharp.db;";
+var dbPath = Environment.GetEnvironmentVariable("FOCUMENT_DB_PATH") ?? "focument_csharp.db";
+var connectionString = $"Data Source={dbPath};";
 
 CID GetCid() => Helpers.NewCID();
 
@@ -104,6 +105,15 @@ var subs = QueryApi.InitWithList(
 var commandHandler = CommandHandlerFactory.Create(actorApi);
 
 var app = builder.Build();
+
+// =============================================================================
+// PATH BASE CONFIGURATION (for subpath deployment like /focument-fsharp)
+// =============================================================================
+var pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_PATHBASE");
+if (!string.IsNullOrEmpty(pathBase))
+{
+    app.UsePathBase(pathBase);
+}
 
 // =============================================================================
 // SECURITY MIDDLEWARE PIPELINE
