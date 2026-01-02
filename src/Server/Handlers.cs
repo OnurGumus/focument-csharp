@@ -8,6 +8,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Model;
 using static FCQRS.CSharp;
 using CID = FCQRS.Model.Data.CID;
@@ -17,6 +18,10 @@ namespace Server;
 
 public static class Handlers
 {
+    private static ILogger? _logger;
+
+    public static void SetLogger(ILoggerFactory loggerFactory) =>
+        _logger = loggerFactory.CreateLogger("Handlers");
     // -----------------------------------------------------------------------------
     // QUERY HANDLERS (Read Side)
     // -----------------------------------------------------------------------------
@@ -38,14 +43,22 @@ public static class Handlers
         ICommandHandlers commandHandler,
         HttpContext ctx)
     {
-        Console.WriteLine(">>> CreateOrUpdateDocument called");
+        _logger?.LogDebug("CreateOrUpdateDocument called");
         try
         {
             var form = await ctx.Request.ReadFormAsync();
             var title = form["Title"].ToString();
             var content = form["Content"].ToString();
             var existingId = form["Id"].ToString();
-            Console.WriteLine($">>> Title: {title}, Content: {content}");
+
+            // Input length validation
+            const int maxLength = 2000;
+            if (title.Length > maxLength)
+                return $"Error: Title exceeds maximum length of {maxLength} characters";
+            if (content.Length > maxLength)
+                return $"Error: Content exceeds maximum length of {maxLength} characters";
+
+            _logger?.LogDebug("Title: {Title}, Content length: {ContentLength}", title, content.Length);
 
             var docId = string.IsNullOrEmpty(existingId)
                 ? Guid.NewGuid()
@@ -53,42 +66,40 @@ public static class Handlers
 
             // Create validated domain objects
             var aggregateId = Helpers.CreateAggregateId(docId.ToString());
-            Console.WriteLine($">>> DocId: {docId}, AggregateId: {aggregateId}");
+            _logger?.LogDebug("DocId: {DocId}, AggregateId: {AggregateId}", docId, aggregateId);
 
             if (!Document.TryCreate(docId, title, content, out var document, out var docError))
             {
-                Console.WriteLine($">>> Document validation failed: {docError}");
+                _logger?.LogWarning("Document validation failed: {Error}", docError);
                 return $"Error: {docError}";
             }
-            Console.WriteLine(">>> Document validated");
+            _logger?.LogDebug("Document validated");
 
             var correlationId = getCid();
-            Console.WriteLine($">>> CorrelationId: {correlationId}");
+            _logger?.LogDebug("CorrelationId: {CorrelationId}", correlationId);
 
             // Subscribe to events with this correlation ID BEFORE sending command
             using var awaiter = ISubscribeExtensions.SubscribeFor(subs, e => e.CID.Equals(correlationId), 1);
-            Console.WriteLine(">>> Awaiter created");
 
             // Send command to the actor
             var handler = commandHandler.DocumentHandler;
-            Console.WriteLine(">>> About to call handler");
             await handler(
                 _ => true,
                 correlationId,
                 aggregateId,
                 new DocumentCommand.CreateOrUpdate(document));
-            Console.WriteLine(">>> Handler called");
+            _logger?.LogDebug("Command sent, waiting for projection");
 
             // Wait for the event to be projected
             await awaiter.Task;
-            Console.WriteLine(">>> Event projected");
+            _logger?.LogDebug("Event projected");
 
             return "Document received!";
         }
         catch (Exception ex)
         {
-            Console.WriteLine($">>> Exception: {ex}");
-            return $"Error: {ex.Message}";
+            _logger?.LogError(ex, "CreateOrUpdateDocument failed");
+            return "Error: An unexpected error occurred. Please try again.";
         }
     }
 
@@ -104,7 +115,13 @@ public static class Handlers
         {
             var form = await ctx.Request.ReadFormAsync();
             var docId = form["Id"].ToString();
-            var version = long.Parse(form["Version"].ToString());
+            var versionStr = form["Version"].ToString();
+
+            // Input validation
+            if (string.IsNullOrWhiteSpace(docId) || docId.Length > 50)
+                return "Error: Invalid document ID";
+            if (!long.TryParse(versionStr, out var version) || version < 0)
+                return "Error: Invalid version number";
 
             // Look up the historical version from the read model
             var history = ServerQuery.GetDocumentHistory(connectionString, docId);
@@ -137,7 +154,8 @@ public static class Handlers
         }
         catch (Exception ex)
         {
-            return $"Error: {ex.Message}";
+            _logger?.LogError(ex, "RestoreVersion failed");
+            return "Error: An unexpected error occurred. Please try again.";
         }
     }
 }

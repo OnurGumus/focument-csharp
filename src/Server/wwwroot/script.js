@@ -1,4 +1,14 @@
 let currentHistoryDocId = null;
+let antiforgeryToken = null;
+let antiforgeryHeaderName = null;
+
+// Fetch antiforgery token on page load
+async function fetchAntiforgeryToken() {
+    const response = await fetch('/api/antiforgery-token');
+    const data = await response.json();
+    antiforgeryToken = data.token;
+    antiforgeryHeaderName = data.headerName;
+}
 
 async function loadDocuments() {
     const response = await fetch('/api/documents');
@@ -81,9 +91,11 @@ async function restoreVersion(id, version) {
 
     await fetch('/api/document/restore', {
         method: 'POST',
+        headers: { [antiforgeryHeaderName]: antiforgeryToken },
         body: formData
     });
 
+    await fetchAntiforgeryToken(); // Refresh token after use
     loadDocuments();
     showHistory(id);
 }
@@ -97,11 +109,15 @@ document.getElementById('docForm').addEventListener('submit', async (e) => {
 
     await fetch('/api/document', {
         method: 'POST',
+        headers: { [antiforgeryHeaderName]: antiforgeryToken },
         body: formData
     });
 
+    await fetchAntiforgeryToken(); // Refresh token after use
     cancelEdit();
     loadDocuments();
 });
 
+// Initialize
+fetchAntiforgeryToken();
 loadDocuments();
