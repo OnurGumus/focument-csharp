@@ -179,7 +179,7 @@ public static class Projection
                 {
                     conn.Execute(
                         "UPDATE Documents SET ApprovalStatus = 'Approved', UpdatedAt = @UpdatedAt WHERE Id = @Id",
-                        new { Id = approved.DocumentId, UpdatedAt = eventTime },
+                        new { Id = approved.DocumentId.Value.ToString(), UpdatedAt = eventTime },
                         transaction);
 
                     dataEvents.Add(docEvent);
@@ -188,7 +188,7 @@ public static class Projection
                 {
                     conn.Execute(
                         "UPDATE Documents SET ApprovalStatus = 'Rejected', UpdatedAt = @UpdatedAt WHERE Id = @Id",
-                        new { Id = rejected.DocumentId, UpdatedAt = eventTime },
+                        new { Id = rejected.DocumentId.Value.ToString(), UpdatedAt = eventTime },
                         transaction);
 
                     dataEvents.Add(docEvent);

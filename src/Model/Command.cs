@@ -128,7 +128,7 @@ public sealed record Document(DocumentId Id, Title Title, Content Content)
 /// <summary>
 /// Commands represent user intentions
 /// </summary>
-[JsonPolymorphic]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(DocumentCommand.CreateOrUpdate), nameof(CreateOrUpdate))]
 [JsonDerivedType(typeof(DocumentCommand.SetApprovalCode), nameof(SetApprovalCode))]
 [JsonDerivedType(typeof(DocumentCommand.Approve), nameof(Approve))]
@@ -146,7 +146,7 @@ public abstract record DocumentCommand
 /// <summary>
 /// Domain errors (business rule violations)
 /// </summary>
-[JsonPolymorphic]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(DocumentError.DocumentNotFound), nameof(DocumentNotFound))]
 public abstract record DocumentError
 {
@@ -158,7 +158,7 @@ public abstract record DocumentError
 /// <summary>
 /// Events represent facts that happened
 /// </summary>
-[JsonPolymorphic]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(DocumentEvent.CreatedOrUpdated), nameof(CreatedOrUpdated))]
 [JsonDerivedType(typeof(DocumentEvent.Error), nameof(Error))]
 [JsonDerivedType(typeof(DocumentEvent.ApprovalCodeSet), nameof(ApprovalCodeSet))]
@@ -171,6 +171,6 @@ public abstract record DocumentEvent
     public sealed record CreatedOrUpdated(Document Document) : DocumentEvent;
     public sealed record Error(DocumentError ErrorDetails) : DocumentEvent;
     public sealed record ApprovalCodeSet(string Code) : DocumentEvent;
-    public sealed record Approved(string DocumentId) : DocumentEvent;
-    public sealed record Rejected(string DocumentId) : DocumentEvent;
+    public sealed record Approved(DocumentId DocumentId) : DocumentEvent;
+    public sealed record Rejected(DocumentId DocumentId) : DocumentEvent;
 }
