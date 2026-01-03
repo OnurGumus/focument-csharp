@@ -43,21 +43,9 @@ public static class DocumentShard
                 Document = e.Document,
                 Version = state.Version + 1L
             },
-            DocumentEvent.ApprovalCodeSet e => state with
-            {
-                ApprovalCode = e.Code,
-                Version = state.Version + 1L
-            },
-            DocumentEvent.Approved => state with
-            {
-                IsApproved = true,
-                Version = state.Version + 1L
-            },
-            DocumentEvent.Rejected => state with
-            {
-                IsApproved = false,
-                Version = state.Version + 1L
-            },
+            DocumentEvent.ApprovalCodeSet e => state with { ApprovalCode = e.Code },
+            DocumentEvent.Approved => state with { IsApproved = true },
+            DocumentEvent.Rejected => state with { IsApproved = false },
             DocumentEvent.Error => state,
             _ => state
         };
