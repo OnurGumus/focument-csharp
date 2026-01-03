@@ -145,11 +145,30 @@ app.UseHttpsRedirection();
 // Security headers
 app.Use(async (context, next) =>
 {
-    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["X-Frame-Options"] = "DENY";
-    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    var headers = context.Response.Headers;
+
+    // Global headers for all responses
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()";
+
     await next();
+
+    // Add CSP only for HTML responses
+    var contentType = context.Response.ContentType;
+    if (contentType != null && contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
+    {
+        headers["Content-Security-Policy"] =
+            "default-src 'self'; " +
+            "script-src 'self'; " +
+            "style-src 'self'; " +
+            "img-src 'self' data:; " +
+            "font-src 'self'; " +
+            "connect-src 'self'; " +
+            "frame-ancestors 'none'; " +
+            "base-uri 'self'; " +
+            "form-action 'self'";
+    }
 });
 
 // Rate limiting
