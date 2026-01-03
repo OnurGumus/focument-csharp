@@ -104,8 +104,6 @@ public static class Projection
 
             if (docEvent != null)
             {
-                // Get the version value from the F# Version type
-                var version = FCQRS.Model.Data.Version.Value_.Item1.Invoke(docEvent.Version);
                 var eventTime = docEvent.CreationDate.ToString("o");
 
                 if (docEvent.EventDetails is DocumentEvent.CreatedOrUpdated created)
@@ -114,6 +112,13 @@ public static class Projection
                     var docId = doc.Id.ToString();
                     var title = doc.Title.ToString();
                     var content = doc.Content.ToString();
+
+                    // Get next document version (only counts CreatedOrUpdated events)
+                    var maxVersion = conn.QueryFirstOrDefault<long?>(
+                        "SELECT MAX(Version) FROM DocumentVersions WHERE Id = @Id",
+                        new { Id = docId },
+                        transaction);
+                    var docVersion = (maxVersion ?? 0) + 1;
 
                     var existing = conn.QueryFirstOrDefault<string>(
                         "SELECT Id FROM Documents WHERE Id = @Id",
@@ -132,7 +137,7 @@ public static class Projection
                                 Id = docId,
                                 Title = title,
                                 Body = content,
-                                Version = version,
+                                Version = docVersion,
                                 CreatedAt = eventTime,
                                 UpdatedAt = eventTime
                             },
@@ -151,7 +156,7 @@ public static class Projection
                                 Id = docId,
                                 Title = title,
                                 Body = content,
-                                Version = version,
+                                Version = docVersion,
                                 UpdatedAt = eventTime
                             },
                             transaction);
@@ -166,7 +171,7 @@ public static class Projection
                         new
                         {
                             Id = docId,
-                            Version = version,
+                            Version = docVersion,
                             Title = title,
                             Body = content,
                             CreatedAt = eventTime
