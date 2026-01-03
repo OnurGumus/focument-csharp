@@ -23,6 +23,7 @@ public class Document
     public long Version { get; set; }
     public string CreatedAt { get; set; } = "";
     public string UpdatedAt { get; set; } = "";
+    public string ApprovalStatus { get; set; } = "Pending";
 }
 
 /// <summary>

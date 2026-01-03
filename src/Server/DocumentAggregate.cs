@@ -87,12 +87,12 @@ public static class DocumentShard
                 EventActions.Persist<DocumentEvent>(new DocumentEvent.ApprovalCodeSet(c.Code)),
 
             // Approve document (saga command)
-            (DocumentCommand.Approve, _) =>
-                EventActions.Persist<DocumentEvent>(new DocumentEvent.Approved()),
+            (DocumentCommand.Approve, { } doc) =>
+                EventActions.Persist<DocumentEvent>(new DocumentEvent.Approved(doc.Id.ToString())),
 
             // Reject document (saga command)
-            (DocumentCommand.Reject, _) =>
-                EventActions.Persist<DocumentEvent>(new DocumentEvent.Rejected()),
+            (DocumentCommand.Reject, { } doc) =>
+                EventActions.Persist<DocumentEvent>(new DocumentEvent.Rejected(doc.Id.ToString())),
 
             _ => EventActions.Ignore<DocumentEvent>()
         };

@@ -38,9 +38,17 @@ public static class Projection
                 Body TEXT NOT NULL,
                 Version INTEGER NOT NULL,
                 CreatedAt TEXT NOT NULL,
-                UpdatedAt TEXT NOT NULL
+                UpdatedAt TEXT NOT NULL,
+                ApprovalStatus TEXT NOT NULL DEFAULT 'Pending'
             )
             """);
+
+        // Migration: Add ApprovalStatus column if it doesn't exist
+        try
+        {
+            conn.Execute("ALTER TABLE Documents ADD COLUMN ApprovalStatus TEXT NOT NULL DEFAULT 'Pending'");
+        }
+        catch (SqliteException) { /* Column already exists */ }
 
         conn.Execute("""
             CREATE TABLE IF NOT EXISTS Offsets (
@@ -116,8 +124,8 @@ public static class Projection
                     {
                         conn.Execute(
                             """
-                            INSERT INTO Documents (Id, Title, Body, Version, CreatedAt, UpdatedAt)
-                            VALUES (@Id, @Title, @Body, @Version, @CreatedAt, @UpdatedAt)
+                            INSERT INTO Documents (Id, Title, Body, Version, CreatedAt, UpdatedAt, ApprovalStatus)
+                            VALUES (@Id, @Title, @Body, @Version, @CreatedAt, @UpdatedAt, 'Pending')
                             """,
                             new
                             {
@@ -135,7 +143,7 @@ public static class Projection
                         conn.Execute(
                             """
                             UPDATE Documents
-                            SET Title = @Title, Body = @Body, Version = @Version, UpdatedAt = @UpdatedAt
+                            SET Title = @Title, Body = @Body, Version = @Version, UpdatedAt = @UpdatedAt, ApprovalStatus = 'Pending'
                             WHERE Id = @Id
                             """,
                             new
@@ -163,6 +171,24 @@ public static class Projection
                             Body = content,
                             CreatedAt = eventTime
                         },
+                        transaction);
+
+                    dataEvents.Add(docEvent);
+                }
+                else if (docEvent.EventDetails is DocumentEvent.Approved approved)
+                {
+                    conn.Execute(
+                        "UPDATE Documents SET ApprovalStatus = 'Approved', UpdatedAt = @UpdatedAt WHERE Id = @Id",
+                        new { Id = approved.DocumentId, UpdatedAt = eventTime },
+                        transaction);
+
+                    dataEvents.Add(docEvent);
+                }
+                else if (docEvent.EventDetails is DocumentEvent.Rejected rejected)
+                {
+                    conn.Execute(
+                        "UPDATE Documents SET ApprovalStatus = 'Rejected', UpdatedAt = @UpdatedAt WHERE Id = @Id",
+                        new { Id = rejected.DocumentId, UpdatedAt = eventTime },
                         transaction);
 
                     dataEvents.Add(docEvent);

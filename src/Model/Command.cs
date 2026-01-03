@@ -171,6 +171,6 @@ public abstract record DocumentEvent
     public sealed record CreatedOrUpdated(Document Document) : DocumentEvent;
     public sealed record Error(DocumentError ErrorDetails) : DocumentEvent;
     public sealed record ApprovalCodeSet(string Code) : DocumentEvent;
-    public sealed record Approved : DocumentEvent;
-    public sealed record Rejected : DocumentEvent;
+    public sealed record Approved(string DocumentId) : DocumentEvent;
+    public sealed record Rejected(string DocumentId) : DocumentEvent;
 }
