@@ -48,13 +48,9 @@ Browser <- API <- Query Handler <---------------+
 
 ## Running locally
 
-You'll need .NET 10 SDK and paket.
+You'll need .NET 10 SDK.
 
 ```bash
-# Restore dependencies
-dotnet tool restore
-dotnet paket restore
-
 # Run the server
 dotnet run --project src/Server
 ```

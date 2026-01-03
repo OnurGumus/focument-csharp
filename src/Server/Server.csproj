@@ -14,5 +14,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Model\Model.csproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="FCQRS" Version="5.*" />
+    <PackageReference Include="Dapper" Version="2.*" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.*" />
+    <!-- Pin Akka versions to match FCQRS requirements -->
+    <PackageReference Include="Akka.Streams" Version="1.5.57" />
+    <PackageReference Include="Akka.Persistence.Query" Version="1.5.57" />
+  </ItemGroup>
 </Project>
