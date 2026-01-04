@@ -108,7 +108,7 @@ var subs = QueryApi.InitWithList(
     (int)lastOffset,
     (offset, evt) => Projection.HandleEventWrapper(logf, connectionString, offset, evt));
 
-var commandHandler = CommandHandlerFactory.Create(actorApi);
+var commandHandler = ICommandHandlers.Create(actorApi);
 
 var app = builder.Build();
 

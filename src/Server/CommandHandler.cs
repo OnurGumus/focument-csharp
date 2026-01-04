@@ -16,19 +16,13 @@ namespace Server;
 public interface ICommandHandlers
 {
     Handler<DocumentCommand, DocumentEvent> DocumentHandler { get; }
+
+    static ICommandHandlers Create(FCQRS.Common.IActor actorApi) =>
+        new CommandHandlers(actorApi);
 }
 
-// -----------------------------------------------------------------------------
-// API FACTORY
-// -----------------------------------------------------------------------------
-public static class CommandHandlerFactory
+file sealed class CommandHandlers(FCQRS.Common.IActor actorApi) : ICommandHandlers
 {
-    public static ICommandHandlers Create(FCQRS.Common.IActor actorApi) =>
-        new CommandHandlers(actorApi);
-
-    private sealed class CommandHandlers(FCQRS.Common.IActor actorApi) : ICommandHandlers
-    {
-        public Handler<DocumentCommand, DocumentEvent> DocumentHandler =>
-            DocumentShard.Handler(actorApi);
-    }
+    public Handler<DocumentCommand, DocumentEvent> DocumentHandler =>
+        DocumentShard.Handler(actorApi);
 }
