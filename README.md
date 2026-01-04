@@ -6,6 +6,8 @@ A document management demo built with event sourcing and CQRS in C#.
 
 **[Live Demo](https://novian.works/focument-csharp)**
 
+F# version of this repo is at https://github.com/OnurGumus/focument
+
 ## What is this?
 
 Focument is a simple web app that lets you create and edit documents with full version history. Every change is stored as an event, so you can see exactly what happened and roll back to any previous version.

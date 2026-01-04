@@ -113,11 +113,8 @@ public static class DocumentApprovalSaga
     // -------------------------------------------------------------------------
     // INITIALIZATION
     // -------------------------------------------------------------------------
-    private static EntityFac<object>? _sagaFac;
-
-    public static EntityFac<object> Init(IActor actorApi)
-    {
-        _sagaFac = SagaBuilderCSharp.InitSimple<DocumentEvent, ApprovalSagaData, ApprovalState>(
+    public static EntityFac<object> Init(IActor actorApi) =>
+        SagaBuilderCSharp.InitSimple<DocumentEvent, ApprovalSagaData, ApprovalState>(
             actorApi,
             InitialData,
             HandleEvent,
@@ -125,12 +122,10 @@ public static class DocumentApprovalSaga
             Apply,
             DocumentShard.OriginatorFactory,
             "DocumentApprovalSaga");
-        return _sagaFac;
-    }
 
     public static Func<string, IEntityRef<object>> Factory(IActor actorApi)
     {
-        var fac = _sagaFac ?? Init(actorApi);
+        var fac = Init(actorApi);
         return entityId => fac.RefFor(DEFAULT_SHARD, entityId);
     }
 
