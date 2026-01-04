@@ -61,15 +61,30 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     options.AddPolicy("WritePolicy", context =>
-        RateLimitPartition.GetSlidingWindowLimiter(
-            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new SlidingWindowRateLimiterOptions
+    {
+        var key = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.Get(key, _ =>
+        {
+            var perMinute = new SlidingWindowRateLimiter(new SlidingWindowRateLimiterOptions
             {
                 PermitLimit = 30,
                 Window = TimeSpan.FromMinutes(1),
                 SegmentsPerWindow = 6,
                 AutoReplenishment = true
-            }));
+            });
+
+            var perHour = new SlidingWindowRateLimiter(new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 50,
+                Window = TimeSpan.FromHours(1),
+                SegmentsPerWindow = 6,
+                AutoReplenishment = true
+            });
+
+            return RateLimiter.CreateChained(perMinute, perHour);
+        });
+    });
 });
 
 var actorApi = ActorApi.Create(
