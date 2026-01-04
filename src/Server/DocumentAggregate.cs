@@ -16,7 +16,7 @@ namespace Server;
 public record DocumentState(
     Document? Document,
     long Version,
-    string? ApprovalCode = null,
+    ApprovalCode? ApprovalCode = null,
     bool? IsApproved = null)
 {
     public static readonly DocumentState Initial = new(null, 0L);
@@ -27,11 +27,6 @@ public record DocumentState(
 // -----------------------------------------------------------------------------
 public static class DocumentShard
 {
-    // Stored factory for saga access
-    private static Func<string, IEntityRef<object>>? _factory;
-    public static Func<string, IEntityRef<object>> OriginatorFactory =>
-        _factory ?? throw new InvalidOperationException("DocumentShard not initialized");
-
     // -------------------------------------------------------------------------
     // EVENT APPLICATION (Pure Function)
     // -------------------------------------------------------------------------
@@ -100,8 +95,7 @@ public static class DocumentShard
     public static Func<string, IEntityRef<object>> Factory(IActor actorApi)
     {
         var entityFac = Init(actorApi, "Document");
-        _factory = entityId => entityFac.RefFor(DEFAULT_SHARD, entityId);
-        return _factory;
+        return entityId => entityFac.RefFor(DEFAULT_SHARD, entityId);
     }
 
     // Handler: Creates a command handler that routes commands to the right actor

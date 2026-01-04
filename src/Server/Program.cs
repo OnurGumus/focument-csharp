@@ -78,11 +78,7 @@ var actorApi = ActorApi.Create(
     connectionString,
     "FocumentCluster");
 
-// Initialize Document aggregate first (so saga can access the factory)
-var documentFactory = DocumentShard.Factory(actorApi);
-
 // Initialize the approval saga
-var sagaFac = DocumentApprovalSaga.Init(actorApi);
 var sagaFactory = DocumentApprovalSaga.Factory(actorApi);
 
 // Initialize saga starter - triggers saga when document is created

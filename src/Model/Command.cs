@@ -80,6 +80,16 @@ public readonly record struct Content(LongString Value)
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>
+/// ApprovalCode: A validated approval code (6-digit string)
+/// </summary>
+public readonly record struct ApprovalCode(string Value)
+{
+    public static ApprovalCode Create(string code) => new(code);
+
+    public override string ToString() => Value;
+}
+
 // -----------------------------------------------------------------------------
 // AGGREGATE ROOT ENTITY
 // -----------------------------------------------------------------------------
@@ -138,7 +148,7 @@ public abstract record DocumentCommand
     private DocumentCommand() { }
 
     public sealed record CreateOrUpdate(Document Document) : DocumentCommand;
-    public sealed record SetApprovalCode(string Code) : DocumentCommand;
+    public sealed record SetApprovalCode(ApprovalCode Code) : DocumentCommand;
     public sealed record Approve : DocumentCommand;
     public sealed record Reject : DocumentCommand;
 }
@@ -170,7 +180,7 @@ public abstract record DocumentEvent
 
     public sealed record CreatedOrUpdated(Document Document) : DocumentEvent;
     public sealed record Error(DocumentError ErrorDetails) : DocumentEvent;
-    public sealed record ApprovalCodeSet(string Code) : DocumentEvent;
+    public sealed record ApprovalCodeSet(ApprovalCode Code) : DocumentEvent;
     public sealed record Approved(DocumentId DocumentId) : DocumentEvent;
     public sealed record Rejected(DocumentId DocumentId) : DocumentEvent;
 }

@@ -18,10 +18,7 @@ namespace Model;
 /// </summary>
 public record ApprovalSagaData
 {
-    public int RetryCount { get; init; } = 0;
-    public string? ApprovalCode { get; init; }
-    public string? DocumentId { get; init; }
-    public string? DocumentTitle { get; init; }
+    public ApprovalCode? ApprovalCode { get; init; }
 }
 
 // -----------------------------------------------------------------------------
@@ -45,10 +42,10 @@ public abstract record ApprovalState
     public sealed record GeneratingCode : ApprovalState;
 
     /// <summary>Sending notification (simulated)</summary>
-    public sealed record SendingNotification(string ApprovalCode) : ApprovalState;
+    public sealed record SendingNotification(ApprovalCode ApprovalCode) : ApprovalState;
 
     /// <summary>Waiting for approval decision</summary>
-    public sealed record WaitingForApproval(string ApprovalCode) : ApprovalState;
+    public sealed record WaitingForApproval(ApprovalCode ApprovalCode) : ApprovalState;
 
     /// <summary>Document was approved</summary>
     public sealed record Approved : ApprovalState;
@@ -73,8 +70,8 @@ public abstract record ApprovalEvent
 {
     private ApprovalEvent() { }
 
-    public sealed record ApprovalCodeGenerated(string Code) : ApprovalEvent;
-    public sealed record NotificationSent(string Code) : ApprovalEvent;
+    public sealed record ApprovalCodeGenerated(ApprovalCode Code) : ApprovalEvent;
+    public sealed record NotificationSent(ApprovalCode Code) : ApprovalEvent;
     public sealed record DocumentApproved(string DocumentId) : ApprovalEvent;
     public sealed record DocumentRejected(string DocumentId) : ApprovalEvent;
 }
@@ -94,7 +91,7 @@ public abstract record ApprovalCommand
 {
     private ApprovalCommand() { }
 
-    public sealed record SetApprovalCode(string Code) : ApprovalCommand;
+    public sealed record SetApprovalCode(ApprovalCode Code) : ApprovalCommand;
     public sealed record ApproveDocument : ApprovalCommand;
     public sealed record RejectDocument : ApprovalCommand;
 }

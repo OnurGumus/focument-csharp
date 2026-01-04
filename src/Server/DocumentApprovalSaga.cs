@@ -53,56 +53,6 @@ public static class DocumentApprovalSaga
         };
 
     // -------------------------------------------------------------------------
-    // SIDE EFFECTS - Sends commands when entering states
-    // -------------------------------------------------------------------------
-    private static SagaSideEffectResult<ApprovalState> ApplySideEffects(
-        ApprovalSagaData data,
-        ApprovalState state,
-        bool recovering) =>
-        state switch
-        {
-            // Generate and set approval code
-            ApprovalState.GeneratingCode => new()
-            {
-                Transition = SagaTransitions.Stay<ApprovalState>(),
-                Commands = [SagaCommands.ToOriginator(
-                    DocumentShard.OriginatorFactory,
-                    new DocumentCommand.SetApprovalCode(GenerateApprovalCode()))]
-            },
-
-            // "Send" notification and auto-approve for demo
-            ApprovalState.SendingNotification sending => new()
-            {
-                Transition = recovering
-                    ? SagaTransitions.Stay<ApprovalState>()
-                    : SagaTransitions.NextState<ApprovalState>(new ApprovalState.WaitingForApproval(sending.ApprovalCode)),
-                Commands = []
-            },
-
-            // Auto-approve after waiting (for demo)
-            ApprovalState.WaitingForApproval => new()
-            {
-                Transition = SagaTransitions.Stay<ApprovalState>(),
-                Commands = [SagaCommands.ToOriginator(
-                    DocumentShard.OriginatorFactory,
-                    new DocumentCommand.Approve())]
-            },
-
-            // Saga completed - stop
-            ApprovalState.Approved or ApprovalState.Rejected => new()
-            {
-                Transition = SagaTransitions.StopSaga<ApprovalState>(),
-                Commands = []
-            },
-
-            _ => new()
-            {
-                Transition = SagaTransitions.Stay<ApprovalState>(),
-                Commands = []
-            }
-        };
-
-    // -------------------------------------------------------------------------
     // APPLY - Update saga data when states change
     // -------------------------------------------------------------------------
     private static ApprovalSagaData Apply(ApprovalSagaData data, ApprovalState state) =>
@@ -113,15 +63,66 @@ public static class DocumentApprovalSaga
     // -------------------------------------------------------------------------
     // INITIALIZATION
     // -------------------------------------------------------------------------
-    public static EntityFac<object> Init(IActor actorApi) =>
-        SagaBuilderCSharp.InitSimple<DocumentEvent, ApprovalSagaData, ApprovalState>(
+    public static EntityFac<object> Init(IActor actorApi)
+    {
+        var originatorFactory = DocumentShard.Factory(actorApi);
+
+        SagaSideEffectResult<ApprovalState> ApplySideEffects(
+            ApprovalSagaData data,
+            ApprovalState state,
+            bool recovering) =>
+            state switch
+            {
+                // Generate and set approval code
+                ApprovalState.GeneratingCode => new()
+                {
+                    Transition = SagaTransitions.Stay<ApprovalState>(),
+                    Commands = [SagaCommands.ToOriginator(
+                        originatorFactory,
+                        new DocumentCommand.SetApprovalCode(GenerateApprovalCode()))]
+                },
+
+                // "Send" notification and auto-approve for demo
+                ApprovalState.SendingNotification sending => new()
+                {
+                    Transition = recovering
+                        ? SagaTransitions.Stay<ApprovalState>()
+                        : SagaTransitions.NextState<ApprovalState>(new ApprovalState.WaitingForApproval(sending.ApprovalCode)),
+                    Commands = []
+                },
+
+                // Auto-approve after waiting (for demo)
+                ApprovalState.WaitingForApproval => new()
+                {
+                    Transition = SagaTransitions.Stay<ApprovalState>(),
+                    Commands = [SagaCommands.ToOriginator(
+                        originatorFactory,
+                        new DocumentCommand.Approve())]
+                },
+
+                // Saga completed - stop
+                ApprovalState.Approved or ApprovalState.Rejected => new()
+                {
+                    Transition = SagaTransitions.StopSaga<ApprovalState>(),
+                    Commands = []
+                },
+
+                _ => new()
+                {
+                    Transition = SagaTransitions.Stay<ApprovalState>(),
+                    Commands = []
+                }
+            };
+
+        return SagaBuilderCSharp.InitSimple<DocumentEvent, ApprovalSagaData, ApprovalState>(
             actorApi,
             InitialData,
             HandleEvent,
             ApplySideEffects,
             Apply,
-            DocumentShard.OriginatorFactory,
+            originatorFactory,
             "DocumentApprovalSaga");
+    }
 
     public static Func<string, IEntityRef<object>> Factory(IActor actorApi)
     {
@@ -132,6 +133,6 @@ public static class DocumentApprovalSaga
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
-    private static string GenerateApprovalCode() =>
-        Random.Shared.Next(100_000, 999_999).ToString();
+    private static ApprovalCode GenerateApprovalCode() =>
+        ApprovalCode.Create(Random.Shared.Next(100_000, 999_999).ToString());
 }
