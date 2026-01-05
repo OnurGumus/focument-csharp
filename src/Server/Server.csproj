@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Model\Model.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FCQRS" Version="5.4.1" />
+    <PackageReference Include="FCQRS" Version="5.5.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.1" />
     <!-- Pin Akka versions to match FCQRS requirements -->

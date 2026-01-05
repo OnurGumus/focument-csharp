@@ -97,20 +97,12 @@ var actorApi = ActorApi.Create(
 var sagaFactory = DocumentApprovalSaga.Factory(actorApi);
 
 // Initialize saga starter - triggers saga when document is created
-IActorExtensions.InitSagaStarter(actorApi, evt =>
+IActorExtensions.InitSagaStarterSimple(actorApi, evt =>
 {
     // When a document is created, start the approval saga
     if (evt is Event<DocumentEvent> { EventDetails: DocumentEvent.CreatedOrUpdated })
     {
-        return
-        [
-            new SagaDefinition
-            {
-                Factory = sagaFactory,
-                PrefixConversion = PrefixConversions.Identity,
-                StartingEvent = evt
-            }
-        ];
+        return [sagaFactory];
     }
     return [];
 });
