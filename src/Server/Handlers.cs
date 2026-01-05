@@ -96,12 +96,12 @@ public static class Handlers
             _logger?.LogDebug("CorrelationId: {CorrelationId}", correlationId);
 
             // Subscribe to events with this correlation ID BEFORE sending command
-            using var awaiter = ISubscribeExtensions.SubscribeFor(subs, e => e.CID.Equals(correlationId), 1);
+            using var awaiter = ISubscribeExtensions.SubscribeFor(subs, correlationId, 1);
 
             // Send command to the actor
             var handler = commandHandler.DocumentHandler;
             await handler(
-                _ => true,
+                e => e is DocumentEvent.Approved,
                 correlationId,
                 aggregateId,
                 new DocumentCommand.CreateOrUpdate(document));
@@ -164,11 +164,11 @@ public static class Handlers
 
             var correlationId = getCid();
 
-            using var awaiter = ISubscribeExtensions.SubscribeFor(subs, e => e.CID.Equals(correlationId), 1);
+            using var awaiter = ISubscribeExtensions.SubscribeFor(subs, correlationId, 1);
 
             var handler = commandHandler.DocumentHandler;
             await handler(
-                _ => true,
+                e => e is DocumentEvent.Approved,
                 correlationId,
                 aggregateId,
                 new DocumentCommand.CreateOrUpdate(document));
