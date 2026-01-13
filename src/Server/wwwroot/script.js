@@ -24,10 +24,14 @@ async function loadDocuments() {
             <td class="cell-version">v${doc.version}</td>
             <td class="cell-date">${new Date(doc.updatedAt).toLocaleString()}</td>
             <td class="cell-actions">
-                <button class="btn-small btn-edit" onclick="editDocument('${doc.id}', '${escapeHtml(doc.title).replace(/'/g, "\\'")}', '${escapeHtml(doc.body).replace(/'/g, "\\'")}')">Edit</button>
+                <button class="btn-small btn-edit">Edit</button>
                 <button class="btn-small btn-history" onclick="showHistory('${doc.id}')">History</button>
             </td>
         `;
+        // Attach click handler properly to avoid escaping issues with newlines
+        row.querySelector('.btn-edit').addEventListener('click', () => {
+            editDocument(doc.id, doc.title, doc.body);
+        });
         tbody.appendChild(row);
     });
 }
